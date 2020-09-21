@@ -18,7 +18,7 @@ services:
       - --cors
       - "*"
   app:
-    image: registry.gitlab.com/kirancedex/wooecommerce-chatbot-rasa:latest
+    image: registry.gitlab.com/arjunnarayanan94/wooecommerce:latest
     volumes:
       - ./actions /app/actions
     ports:
