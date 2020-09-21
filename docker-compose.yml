@@ -1,0 +1,25 @@
+version: '3.0'
+services:
+  rasa:
+    image: rasa/rasa:1.10.8-full
+    ports:
+      - 5005:5005
+    volumes:
+      - ./:/app/
+    command:
+      - run
+      - --enable-api
+      - --model
+      - /app/models
+      - --endpoints
+      - /app/config/endpoints.yml
+      - --credentials
+      - /app/config/credentials.yml
+      - --cors
+      - "*"
+  app:
+    image: registry.gitlab.com/kirancedex/wooecommerce-chatbot-rasa:latest
+    volumes:
+      - ./actions /app/actions
+    ports:
+      - 5055:5055

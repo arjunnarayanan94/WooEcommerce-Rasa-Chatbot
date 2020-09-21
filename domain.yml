@@ -1,0 +1,160 @@
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - shop
+  - productbycat
+  - productbyID
+  - addtocart
+  - gotocart
+  - removefromcart
+  - edititem
+  - searchbykey
+  - coupons
+  - placeorder
+  - payment
+  - getcoupon
+actions:
+- action_category
+- action_prodbycat
+- action_prodbyid
+- action_addtocart
+- action_gotocart
+- action_remove_item
+- action_edit_item
+- action_search_item
+- action_fetch_coupon
+- action_fetch_pm
+- action_placeorder
+entities:
+- cat_id
+- pro_id
+- e_id
+- r_id
+- pmt
+- pmi
+- cp
+slots:
+  total:
+    type: text
+  cp:
+    type: text
+  pmi:
+    type: text
+  pmt:
+    type: text
+  r_id:
+    type: text
+  e_id:
+    type: text
+  cat_id:
+    type: text
+  pro_id:
+    type: text
+  cart:
+    type: text
+  quantity:
+    type: unfeaturized
+    auto_fill: false
+  keyword:
+    type: unfeaturized
+    auto_fill: false
+  product:
+    type: text
+  first_name:
+    type: unfeaturized
+    auto_fill: false
+  last_name:
+    type: unfeaturized
+    auto_fill: false
+  phno:
+    type: unfeaturized
+    auto_fill: false
+  email:
+    type: unfeaturized
+    auto_fill: false
+  address:
+    type: unfeaturized
+    auto_fill: false
+  city:
+    type: unfeaturized
+    auto_fill: false
+  state:
+    type: unfeaturized
+    auto_fill: false
+  country:
+    type: unfeaturized
+    auto_fill: false
+  pincode:
+    type: unfeaturized
+    auto_fill: false
+responses:
+  utter_greet:
+  - buttons:
+    - payload: shop
+      title: Browse Categories
+    - payload: Track Order
+      title: Track Order
+    - payload: Offers & Coupons
+      title: Offers & Coupons
+    - payload: Featured Products
+      title: Featured Products
+    - payload: search product by keyword
+      title: Search by Keyword
+    text: "Hi there, Welcome to the ABC Store. I'm Daniel, your e-commerce assistant.
+           I can make your online purchase easy! How can I help you today?"
+  utter_ask_quantity:
+  - buttons:
+    - payload: "1"
+      title: "1"
+    - payload: "2"
+      title: "2"
+    - payload: "3"
+      title: "3"
+    text: Please provide the quantity.
+  utter_gotocart:
+  - buttons:
+    - payload: show my cart
+      title: Go to my cart
+    - payload: browse products
+      title: Browse Products
+    - payload: Offers & Coupons
+      title: Offers & Coupons
+    - payload: search product by keyword
+      title: Search by Keyword
+    text: What do you want to do next?
+  utter_ask_keyword:
+  - buttons:
+    - payload: "hoodie"
+      title: "Hoodie"
+    - payload: "beanie"
+      title: "Beanie"
+    text: Please type in any keyword.. 
+  utter_ask_first_name:
+  - text: Please provide your first name.
+  utter_ask_last_name:
+  - text: Please provide your last name.
+  utter_ask_phno:
+  - text: Please provide your contact number.
+  utter_ask_email:
+  - text: Please provide your email id.
+  utter_ask_address:
+  - text: Please provide your address.
+  utter_ask_pincode:
+  - text: Please provide your postcode.
+  utter_ask_city:
+  - text: Please provide your city.
+  utter_ask_state:
+  - text: Which state do you belong to?
+  utter_ask_country:
+  - text: Which country do you belong to?
+  utter_cp:
+  - text: Coupon Applied!!
+forms:
+- quantity_form
+- keyword_form
+- address_form
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
