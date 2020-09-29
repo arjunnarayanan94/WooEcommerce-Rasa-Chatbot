@@ -79,7 +79,8 @@ class AddressForm(FormAction):
         if x:
             return {"phno": value}
         else:
-            return[]
+            dispatcher.utter_message(text="Please provide a valid contact number.")
+            return {"phno": None}
 
     def validate_email(
         self,
@@ -94,7 +95,8 @@ class AddressForm(FormAction):
         if x:
             return {"email": value}
         else:
-            return[]
+            dispatcher.utter_message(text="Please provide a valid email id.")
+            return {"email": None}
 
     def validate_address(
         self,
@@ -384,7 +386,7 @@ class ActionAddToCart(Action):
                 })
         dispatcher.utter_message(text="Item was added to the cart.")
         print("Cart :",cart)
-        return[SlotSet('cart',cart),SlotSet('pro_id',None),SlotSet('cat_id',None),SlotSet('quantity',None)]
+        return[SlotSet('cart',cart),SlotSet('pro_id',None),SlotSet('cat_id',None),SlotSet('quantity',None),SlotSet('keyword',None)]
 
 class ActionGoToCart(Action):
     def name(self) -> Text:
@@ -467,6 +469,7 @@ class ActionEditCart(Action):
         for x in cart['data']:
             if x != {}:
                 if x['product']['id'] == eid:
+                    print("Product Found!!")
                     x['quantity'] = q
         print("Cart after updating item: ",cart)
         dispatcher.utter_message(text="Item was updated in the cart.")
@@ -523,7 +526,7 @@ class ActionFetchCoupon(Action):
                 "payload": "Coupon code " + str(x["code"])
             })
         dispatcher.utter_message(text="Please select a coupon.", buttons=b)
-        return[]
+        return[SlotSet('cp',None)]
 
 class ActionFetchPaymentMethods(Action):
     def name(self) -> Text:
@@ -622,5 +625,6 @@ class ActionFetchPlaceOrder(Action):
             dispatcher.utter_message(text="Your order is "+ str(d["status"]) +". Order number is " + str(d["number"]) + " with total cost £" + str(d["total"]) + ".")
             return[Restarted()]
         else:
+            
             dispatcher.utter_message(text=d["message"])
             return[]
