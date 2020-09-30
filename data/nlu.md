@@ -5,6 +5,10 @@
 - good morning
 - good evening
 - hey there
+- start
+- startup
+- lets start
+- let's start
 
 ## intent:goodbye
 - bye
@@ -33,6 +37,10 @@
 - what are you
 - i dont know
 - who r u?
+- siduhfksjhdfk
+- asjdfkn dsjfnk
+- uoasdpfk
+
 
 ## intent:shop
 - shop
@@ -42,20 +50,18 @@
 - shop products
 
 ## intent:productbycat
-- Category id [19](cat_id)
-- Category id [21](cat_id)
-- Category id [16](cat_id)
-- Category id [18](cat_id)
+- Category id is [19](cat_id)
+- show products with category id [21](cat_id)
+- products under category id [16](cat_id)
+- category id [18](cat_id)
 - Category id [15](cat_id)
-- Category id [5](cat_id)
 
 ## intent:productbyID
-- Product id [32](pro_id)
-- Product id [42](pro_id)
-- Product id [23](pro_id)
-- Product id [14](pro_id)
+- Product id is [32](pro_id)
+- show product with product id [42](pro_id)
+- product with id [23](pro_id)
+- product id [14](pro_id)
 - Product id [45](pro_id)
-- Product id [10](pro_id)
 
 ## intent:addtocart
 - add to cart
@@ -70,7 +76,7 @@
 - go cart
 
 ## intent:removefromcart
-- Remove from cart [12](r_id)
+- Remove product from cart [12](r_id)
 - Remove item [45](r_id)
 - Remove item from cart [34](r_id)
 - Remove product [12](r_id)
@@ -98,20 +104,28 @@
 - list coupons
 
 ## intent:getcoupon
-- Coupon code [98wh4xvw](cp)
-- Coupon code [8nvj55pb](cp)
-- Coupon code [free shipping](cp)
-- Coupon code [10off](cp)
+- Coupon code is [98wh4xvw](cp)
+- Apply coupon code [8nvj55pb](cp)
+- coupon code [free shipping](cp)
 - Coupon code [10off](cp)
 
 ## intent:payment
-- payment method [Cash on delivery](pmt) [cod](pmi)
-- payment method [Direct bank transfer](pmt) [bacs](pmi)
+- payment method is [Cash on delivery](pmt) [cod](pmi)
+- complete payment with [Direct bank transfer](pmt) [bacs](pmi)
 - payment method [Check payments](pmt) [cheque](pmi)
-- payment method [PayPal](pmt) [paypal](pmi)
+- pay using [PayPal](pmt) [paypal](pmi)
 
 ## intent:placeorder
 - place order
 - proceed to buy
 - create order
 - proceed to order
+
+## intent:trackorder
+- track order
+- track shipment
+- track my order
+- track my shipment
+- where is my order
+- What is the status of my order
+- order status

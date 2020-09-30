@@ -1,7 +1,7 @@
 from typing import Any, Text, Dict, List, Union
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-from rasa_sdk.events import SlotSet, FollowupAction, AllSlotsReset, Restarted
+from rasa_sdk.events import SlotSet, FollowupAction, AllSlotsReset, Restarted, UserUtteranceReverted
 from rasa_sdk.forms import FormAction, REQUESTED_SLOT
 import requests
 import json
@@ -22,7 +22,7 @@ class ActionFallback(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        dispatcher.utter_message("Can you please rephrase that once more..")
+        dispatcher.utter_message("Sorry, I didn't understand. Can you please rephrase that once more..")
         return []
 
 class AddressForm(FormAction):
@@ -75,11 +75,12 @@ class AddressForm(FormAction):
         domain: Dict[Text, Any],
     ) -> Dict[Text, Any]:
         print("ph")
-        x = re.search("^[0-9]{10}$", value)
+        x = re.search("^\+[1-9]{1}[0-9]{3,14}$", value)
         if x:
             return {"phno": value}
         else:
-            return[]
+            dispatcher.utter_message(text="Invalid contact number!!")
+            return {"phno": None}
 
     def validate_email(
         self,
@@ -94,7 +95,8 @@ class AddressForm(FormAction):
         if x:
             return {"email": value}
         else:
-            return[]
+            dispatcher.utter_message(text="Invalid email-id!!")
+            return {"email": None}
 
     def validate_address(
         self,
@@ -218,6 +220,10 @@ class ActionProductByCategory(Action):
         p = {"category":str(cat_id)}
         r = requests.get(productbycategory,auth=HTTPBasicAuth(key,secret),json=p)
         d = r.json()
+        if d == []:
+            dispatcher.utter_message(text="Sorry, currently there are no products under this category.")
+            dispatcher.utter_message(template = 'utter_gotocart')
+            return[SlotSet('cat_id',None)]
         res = {"attachment": {"type": "template", "payload": {
             "template_type": "generic", "elements": []}}}
         for x in d:
@@ -384,7 +390,7 @@ class ActionAddToCart(Action):
                 })
         dispatcher.utter_message(text="Item was added to the cart.")
         print("Cart :",cart)
-        return[SlotSet('cart',cart),SlotSet('pro_id',None),SlotSet('cat_id',None),SlotSet('quantity',None)]
+        return[SlotSet('cart',cart),SlotSet('pro_id',None),SlotSet('cat_id',None),SlotSet('quantity',None),SlotSet('keyword',None)]
 
 class ActionGoToCart(Action):
     def name(self) -> Text:
@@ -442,6 +448,7 @@ class ActionRemoveFromCart(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         cart = tracker.get_slot('cart')
         rid = tracker.get_slot('r_id')
+        print("Remove Item:", rid)
         for x in cart['data']:
             if x != {}:
                 if x['product']['id'] == rid:
@@ -467,6 +474,7 @@ class ActionEditCart(Action):
         for x in cart['data']:
             if x != {}:
                 if x['product']['id'] == eid:
+                    print("Product Found!!")
                     x['quantity'] = q
         print("Cart after updating item: ",cart)
         dispatcher.utter_message(text="Item was updated in the cart.")
@@ -484,26 +492,30 @@ class ActionSearch(Action):
             searchbykeyword = main_url + 'wp-json/wc/v3/products'
             r = requests.get(searchbykeyword,auth=HTTPBasicAuth(key,secret),json=p)
             d = r.json()
-            print("data ",d)
-            res = {"attachment": {"type": "template", "payload": {
-            "template_type": "generic", "elements": []}}}
-            for x in d:
-                res["attachment"]["payload"]["elements"].append({
-                    "title": x["name"],
-                    "image_url": x["images"][0]["src"],
-                    "subtitle": TAG_RE.sub('',x["short_description"]),
-                    "buttons": [
-                        {
-                            "type": "postback",
-                            "title": "Select " + x["name"],
-                            "payload": "Product id " + str(x["id"])
-                        }
-                    ]
-                })
-            if tracker.get_latest_input_channel() == 'facebook':
-                dispatcher.utter_message(json_message=res)
-            else:
-                dispatcher.utter_message(attachment=res["attachment"])
+            if d == []:
+                dispatcher.utter_message(text="No results found. Please try some other keyword(eg. Hoodie).")
+                dispatcher.utter_message(template='utter_gotocart')
+            else:        
+                print("data ",d)
+                res = {"attachment": {"type": "template", "payload": {
+                "template_type": "generic", "elements": []}}}
+                for x in d:
+                    res["attachment"]["payload"]["elements"].append({
+                        "title": x["name"],
+                        "image_url": x["images"][0]["src"],
+                        "subtitle": TAG_RE.sub('',x["short_description"]),
+                        "buttons": [
+                            {
+                                "type": "postback",
+                                "title": "Select " + x["name"],
+                                "payload": "Product id " + str(x["id"])
+                            }
+                        ]
+                    })
+                if tracker.get_latest_input_channel() == 'facebook':
+                    dispatcher.utter_message(json_message=res)
+                else:
+                    dispatcher.utter_message(attachment=res["attachment"])
             return[]
 
 class ActionFetchCoupon(Action):
@@ -513,17 +525,47 @@ class ActionFetchCoupon(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        cart = tracker.get_slot('cart')
+        if cart == None or cart == {'data': []}:
+            dispatcher.utter_message(text="Cannot apply coupons, your cart is empty!!")
+            dispatcher.utter_message(template = 'utter_gotocart')
+        else:
+            coupon_url = main_url + 'wp-json/wc/v3/coupons'
+            r = requests.get(coupon_url,auth=HTTPBasicAuth(key,secret))
+            d = r.json()
+            b =[]
+            for x in d:
+                b.append({
+                    "title": x["code"],
+                    "payload": "Coupon code " + str(x["code"])
+                })
+            dispatcher.utter_message(text="Please select a coupon.", buttons=b)
+            return[SlotSet('cp',None)]
+        return[]
+
+class ActionCouponCheck(Action):
+    def name(self) -> Text:
+        return "action_couponchk"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        code = tracker.get_slot('cp')
+        total = float(tracker.get_slot('total'))
         coupon_url = main_url + 'wp-json/wc/v3/coupons'
         r = requests.get(coupon_url,auth=HTTPBasicAuth(key,secret))
         d = r.json()
-        b =[]
+        f = 0
         for x in d:
-            b.append({
-                "title": x["code"],
-                "payload": "Coupon code " + str(x["code"])
-            })
-        dispatcher.utter_message(text="Please select a coupon.", buttons=b)
-        return[]
+            if x["code"] == code:
+                if float(x["minimum_amount"]) > total:
+                    f = 1
+        if f == 1: 
+            dispatcher.utter_message("Coupon cannot be applied!! Minimum amout is " + str(x["minimum_amount"]))
+            return[SlotSet('cp',None)]
+        else:
+            dispatcher.utter_message(template='utter_cp')
+            return[] 
 
 class ActionFetchPaymentMethods(Action):
     def name(self) -> Text:
@@ -620,7 +662,88 @@ class ActionFetchPlaceOrder(Action):
         print(d)
         if r.status_code == 201:
             dispatcher.utter_message(text="Your order is "+ str(d["status"]) +". Order number is " + str(d["number"]) + " with total cost £" + str(d["total"]) + ".")
-            return[Restarted()]
+            return[AllSlotsReset()]
         else:
+            
             dispatcher.utter_message(text=d["message"])
             return[]
+
+class TrakOrderForm(FormAction):
+
+    def name(self) -> Text:
+        return "trackorder_form"
+
+    @ staticmethod
+    def required_slots(tracker: Tracker) -> List[Text]:
+        return ["email", "orno"]
+
+    def slot_mappings(self) -> Dict[Text, Union[Dict, List[Dict]]]:
+        return {
+            "email": self.from_text(),
+            "orno": self.from_text()
+        }
+
+    def validate_email(
+        self,
+        value: Text,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        print("email")
+        x = re.search(
+            "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$", value)
+        if x:
+            return {"email": value}
+        else:
+            return {"email": None}
+
+    def validate_orno(
+        self,
+        value: Text,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        return {"orno": value}
+
+    def submit(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> List[Dict]:
+        orno = tracker.get_slot('orno')
+        em = tracker.get_slot('email')
+        print("Order number: ", orno)
+        print("Email: ", em)
+        return []
+
+class ActionTrackOrder(Action):
+
+    def name(self) -> Text:
+        return "action_trackorder"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        ordno = tracker.get_slot('orno')
+        em = tracker.get_slot('email')
+        trackorder = main_url + 'wp-json/wc/v3/orders/' + str(ordno)
+        r = requests.get(trackorder,auth=HTTPBasicAuth(key,secret))
+        if r.status_code == 200:
+            d = r.json()
+            print(d)
+            if em == d["billing"]["email"]:
+                date = str(d["date_modified"]).split("T")
+                print("Date: ",date[0])
+                print("Time: ",date[1])
+                dispatcher.utter_message(text="Hi " +str(d["billing"]["first_name"])+ ", your order is "+ str(d["status"]) +". Last updated on "+str(date[0])+" at "+str(date[1])+".")
+                dispatcher.utter_message(template="utter_gotocart")
+            else:
+                dispatcher.utter_message(text="Information provided doesn't match our records.")
+                dispatcher.utter_message(template="utter_gotocart")
+        else:
+            dispatcher.utter_message(text="No orders found with the provided order number. Please check and try again.")
+            dispatcher.utter_message(template="utter_gotocart")
+        return []
