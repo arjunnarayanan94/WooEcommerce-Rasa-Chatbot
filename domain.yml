@@ -2,6 +2,7 @@ session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
 intents:
+- backtomenu
 - greet
 - goodbye
 - affirm
@@ -95,8 +96,6 @@ responses:
       title: Track Order
     - payload: Offers & Coupons
       title: Offers & Coupons
-    - payload: Featured Products
-      title: Featured Products
     - payload: search product by keyword
       title: Search by Keyword
     text: Hi there, Welcome to the ABC Store. I'm Daniel, your e-commerce assistant.
@@ -114,8 +113,10 @@ responses:
   - buttons:
     - payload: show my cart
       title: Go to my cart
-    - payload: browse products
-      title: Browse Products
+    - payload: shop
+      title: Browse Categories
+    - payload: Track Order
+      title: Track Order
     - payload: Offers & Coupons
       title: Offers & Coupons
     - payload: search product by keyword
@@ -165,6 +166,7 @@ actions:
 - action_fallback
 - action_trackorder
 - action_couponchk
+- action_goback
 forms:
 - quantity_form
 - keyword_form

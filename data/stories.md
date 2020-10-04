@@ -3,6 +3,10 @@
   - action_fallback
   - utter_gotocart
 
+## backtomenu
+* backtomenu
+  - action_goback
+
 ## greet
 * greet
   - utter_greet

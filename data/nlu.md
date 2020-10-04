@@ -41,7 +41,6 @@
 - asjdfkn dsjfnk
 - uoasdpfk
 
-
 ## intent:shop
 - shop
 - browse products
@@ -108,6 +107,10 @@
 - Apply coupon code [8nvj55pb](cp)
 - coupon code [free shipping](cp)
 - Coupon code [10off](cp)
+- Coupon code [new 50 off](cp)
+- coupon code [zdf ksdjnf 56 dkfn](cp)
+- coupon code [sdvnknz skdjcn jdn](cp)
+- Apply coupon code [new 50 off](cp)
 
 ## intent:payment
 - payment method is [Cash on delivery](pmt) [cod](pmi)
@@ -129,3 +132,10 @@
 - where is my order
 - What is the status of my order
 - order status
+
+## intent:backtomenu
+- back
+- undo
+- go back
+- back to menu
+- menu

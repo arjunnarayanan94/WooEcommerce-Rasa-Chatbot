@@ -25,6 +25,17 @@ class ActionFallback(Action):
         dispatcher.utter_message("Sorry, I didn't understand. Can you please rephrase that once more..")
         return []
 
+class ActionGoBack(Action):
+
+    def name(self) -> Text:
+        return "action_goback"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        dispatcher.utter_message(template = 'utter_gotocart')
+        return [SlotSet('pro_id',None),SlotSet('cat_id',None),SlotSet('quantity',None),SlotSet('keyword',None),SlotSet('e_id',None),SlotSet('r_id',None),SlotSet('pmt',None),SlotSet('pmi',None),SlotSet('address',None),SlotSet('city',None),SlotSet('country',None),SlotSet('email',None),SlotSet('first_name',None),SlotSet('last_name',None),SlotSet('orno',None),SlotSet('phno',None),SlotSet('pincode',None),SlotSet('state',None)]
+
 class AddressForm(FormAction):
 
     def name(self) -> Text:
@@ -75,7 +86,7 @@ class AddressForm(FormAction):
         domain: Dict[Text, Any],
     ) -> Dict[Text, Any]:
         print("ph")
-        x = re.search("^\+[1-9]{1}[0-9]{3,14}$", value)
+        x = re.search("^\+[1-9]{1}[0-9]{3,14}$", value) or re.search("^[0-9]{10}$", value) 
         if x:
             return {"phno": value}
         else:
@@ -516,7 +527,7 @@ class ActionSearch(Action):
                     dispatcher.utter_message(json_message=res)
                 else:
                     dispatcher.utter_message(attachment=res["attachment"])
-            return[]
+            return[SlotSet('keyword', None)]
 
 class ActionFetchCoupon(Action):
     def name(self) -> Text:
@@ -556,12 +567,14 @@ class ActionCouponCheck(Action):
         r = requests.get(coupon_url,auth=HTTPBasicAuth(key,secret))
         d = r.json()
         f = 0
+        print(code)
         for x in d:
             if x["code"] == code:
                 if float(x["minimum_amount"]) > total:
-                    f = 1
-        if f == 1: 
-            dispatcher.utter_message("Coupon cannot be applied!! Minimum amout is " + str(x["minimum_amount"]))
+                    f = x["minimum_amount"]
+
+        if f != 0: 
+            dispatcher.utter_message("Coupon cannot be applied!! Minimum amount is " + str(f))
             return[SlotSet('cp',None)]
         else:
             dispatcher.utter_message(template='utter_cp')
